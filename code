@@ -1,0 +1,60 @@
+#define TRIGGER 16 //D0
+#define ECHO    4  //D2
+#define RELAY 13   //D7
+
+// NodeMCU Pin D0 > TRIGGER | Pin D1 > ECHO
+
+#define BLYNK_PRINT Serial    // Comment this out to disable prints and save space
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+
+// You should get Auth Token in the Blynk App.
+// Go to the Project Settings (nut icon).
+char auth[] = "jdrv-YV7dCAtA04QwSLblTtUoZaaAc39";
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "jionet";
+char pass[] = "sudhar@96";
+void setup() {
+  Serial.begin (9600);
+  Blynk.begin(auth, ssid, pass);
+  pinMode(TRIGGER, OUTPUT);
+  pinMode(ECHO, INPUT);
+  pinMode(RELAY, OUTPUT);
+}
+
+ 
+void loop() {
+long duration, distance, distance1;
+digitalWrite(TRIGGER, LOW);
+delayMicroseconds(4);
+digitalWrite(TRIGGER, HIGH);
+delayMicroseconds(10);
+digitalWrite(TRIGGER, LOW);
+duration= pulseIn(ECHO, HIGH);
+distance = duration * 0.034/2; //convert duration to distance in cm
+distance1 = (100*distance/15); //convert distance to percent
+distance1 = 100 - distance1; // makes the percentage 100-0
+if (distance1 <= 80 && distance1 >= 0) {
+// Buzz
+digitalWrite(RELAY, HIGH);
+} else {
+// Don't buzz
+digitalWrite(RELAY, LOW);
+}
+// Waiting 60 ms won't hurt any one
+delay(60);
+Blynk.run();
+Blynk.virtualWrite(V5, distance1);
+Blynk.virtualWrite(V6, distance1);
+Serial.println(distance1);
+if ((distance1<=80)&&(distance1>1)){
+  Blynk.virtualWrite(V0,1);
+  //digitalWrite(RELAY, HIGH);
+  }else{
+    Blynk.virtualWrite(V0,0);
+    //digitalWrite(RELAY, LOW);
+    }
+delay(500);
+}
